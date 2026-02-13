@@ -1572,7 +1572,13 @@ struct chatllm_obj *chatllm_create(void)
     return (chatllm_obj *)chat;
 }
 
-    auto it = find_if(chat_objects.begin(), chat_objects.end(), [=](auto &c) { return c.get() == chat; });
+int chatllm_destroy(struct chatllm_obj *obj)
+{
+    DEF_CHAT_STREAMER();
+
+    if (!streamer->is_prompt || chat->is_async_busy) return -1;
+
+    auto it = std::find_if(chat_objects.begin(), chat_objects.end(), [chat](auto &c) { return c.get() == chat; });
 
     if (it != chat_objects.end())
     {
