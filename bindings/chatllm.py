@@ -150,8 +150,11 @@ class LibChatLLM:
 
         self._chatllm_user_input_multimedia_msg.restype         = c_int
         self._chatllm_user_input_multimedia_msg.argtypes        = [c_void_p]
+        self._chatllm_destroy = self._lib.chatllm_destroy
         self._chatllm_async_user_input_multimedia_msg.restype   = c_int
         self._chatllm_async_user_input_multimedia_msg.argtypes  = [c_void_p]
+        self._chatllm_destroy.restype = c_int
+        self._chatllm_destroy.argtypes = [c_void_p]
 
         self._chatllm_tool_input.restype = c_int
         self._chatllm_tool_input.argtypes = [c_void_p, c_char_p]
@@ -267,6 +270,10 @@ class LibChatLLM:
 
     def set_ai_prefix(self, obj: c_void_p, prefix: str) -> int:
         return self._chatllm_set_ai_prefix(obj, c_char_p(prefix.encode()))
+
+    def destroy(self, obj: c_void_p) -> int:
+        if obj is None: return 0
+        return self._chatllm_destroy(obj)
 
     def _input_multimedia_msg(self, obj: c_void_p, user_input: List[dict | str]) -> int:
         self._chatllm_multimedia_msg_prepare(obj)
@@ -561,6 +568,13 @@ class ChatLLM:
 
     def load_session(self, file_name: str) -> str:
         return self._lib.load_session(self._chat, file_name)
+
+    def destroy(self) -> int:
+        if hasattr(self, "_chat") and self._chat:
+            if self.is_generating: self.abort()
+            self._lib.destroy(self._chat)
+            self._chat = None
+        return 0
 
     def callback_print_reference(self, s: str) -> None:
         self.references.append(s)
