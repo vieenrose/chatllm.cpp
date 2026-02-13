@@ -593,6 +593,11 @@ class ChatLLM:
     def destroy(self) -> int:
         if hasattr(self, "_chat") and self._chat:
             if self.is_generating: self.abort()
+            # Clean up dict references to prevent memory accumulation
+            obj_id = LibChatLLM._obj2id.get(self)
+            if obj_id is not None:
+                LibChatLLM._obj2id.pop(self, None)
+                LibChatLLM._id2obj.pop(obj_id, None)
             self._lib.destroy(self._chat)
             self._chat = None
         return 0

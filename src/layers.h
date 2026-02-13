@@ -311,6 +311,14 @@ namespace chatllm
         PreludeCacheDisable(void): disabler(new BlockParams::DisableCache())
         {
         }
+        virtual ~PreludeCacheDisable()
+        {
+            if (disabler)
+            {
+                delete disabler;
+                disabler = nullptr;
+            }
+        }
     protected:
         BlockParams::DisableCache *disabler;
     };
