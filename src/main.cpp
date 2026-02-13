@@ -1572,12 +1572,6 @@ struct chatllm_obj *chatllm_create(void)
     return (chatllm_obj *)chat;
 }
 
-int chatllm_destroy(struct chatllm_obj *obj)
-{
-    DEF_CHAT_STREAMER();
-
-    if (!streamer->is_prompt || chat->is_async_busy) return -1;
-
     auto it = find_if(chat_objects.begin(), chat_objects.end(), [=](auto &c) { return c.get() == chat; });
 
     if (it != chat_objects.end())
@@ -1884,7 +1878,7 @@ int chatllm_user_input(struct chatllm_obj *obj, const char *utf8_str)
 
     if (!chat->pipeline->is_loaded()) return -2;
 
-    if (    (chat->pipeline->model->get_purpose() != chatllm::ModelPurpose::Chat)
+    if (    (chat->pipeline->model->get_purpose() != chatllm::ModelPurpose::Chat && chat->pipeline->model->get_purpose() != chatllm::ModelPurpose::ASR)
         &&  (chat->pipeline->model->get_purpose() != chatllm::ModelPurpose::ASR))
         return -3;
 
@@ -1892,6 +1886,7 @@ int chatllm_user_input(struct chatllm_obj *obj, const char *utf8_str)
 
     return chatllm_generate(obj);
 }
+
 
 int chatllm_user_input_multimedia_msg(struct chatllm_obj *obj)
 {
@@ -1901,7 +1896,7 @@ int chatllm_user_input_multimedia_msg(struct chatllm_obj *obj)
 
     if (!streamer->is_prompt) return -1;
 
-    if (chat->pipeline->is_loaded() && (chat->pipeline->model->get_purpose() != chatllm::ModelPurpose::Chat))
+    if (chat->pipeline->is_loaded() && (chat->pipeline->model->get_purpose() != chatllm::ModelPurpose::Chat && chat->pipeline->model->get_purpose() != chatllm::ModelPurpose::ASR))
         return -1;
 
     chat->history.push_back(chat->content_scratch, role_user);
@@ -1926,7 +1921,7 @@ int chatllm_ai_continue(struct chatllm_obj *obj, const char *utf8_str)
 
     if (!streamer->is_prompt) return -1;
 
-    if (chat->pipeline->is_loaded() && (chat->pipeline->model->get_purpose() != chatllm::ModelPurpose::Chat))
+    if (chat->pipeline->is_loaded() && (chat->pipeline->model->get_purpose() != chatllm::ModelPurpose::Chat && chat->pipeline->model->get_purpose() != chatllm::ModelPurpose::ASR))
         return -1;
 
     if (chat->history.size() < 1) return -2;
