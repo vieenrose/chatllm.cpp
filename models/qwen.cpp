@@ -3502,18 +3502,27 @@ namespace chatllm::qwen::v3_forcedaligner
 
         fix_timestamp(data, timestamps);
 
+        // Build timestamps, handling gaps in parent_id (can occur when sentences have no cleaned words)
         tok->timestamps.clear();
+        int expected_parent = 0;
         for (int i = 0; i < (int)tok->cleaned_words.size(); i++)
         {
             auto &w = tok->cleaned_words[i];
+            
+            // Handle gaps: add empty placeholder timestamps for skipped parent_ids
+            while (expected_parent < w.parent_id)
+            {
+                tok->timestamps.emplace_back(0.0, 0.0);
+                expected_parent++;
+            }
+            
             if (w.parent_id >= (int)tok->timestamps.size())
             {
-                CHATLLM_CHECK(w.parent_id == (int)tok->timestamps.size());
                 tok->timestamps.emplace_back(timestamps[2 * i + 0], timestamps[2 * i + 1]);
+                expected_parent++;
             }
             else
             {
-                CHATLLM_CHECK(w.parent_id == (int)tok->timestamps.size() - 1);
                 tok->timestamps.back().end = timestamps[2 * i + 1];
             }
         }
