@@ -247,8 +247,9 @@ class LibChatLLM:
 
     @staticmethod
     def callback_end(user_data: int) -> None:
-        obj = LibChatLLM._id2obj[user_data]
-        obj.callback_end()
+        obj = LibChatLLM._id2obj.get(user_data)
+        if obj is not None:
+            obj.callback_end()
 
     def alloc_id_for_obj(self, obj: Any) -> int:
         if obj in LibChatLLM._obj2id:
